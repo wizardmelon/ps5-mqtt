@@ -13,6 +13,7 @@ import type {
   CheckPsnPresenceAction,
   PollPsnPresenceAction,
   UpdateAccountAction,
+  PersistPsnAccountAction,
   PersistProvisionalPsnTokensAction,
   Account,
 } from "./types"
@@ -81,6 +82,11 @@ const updateAccount = (account: Account): UpdateAccountAction => ({
   payload: account,
 })
 
+const persistPsnAccount = (account: Account): PersistPsnAccountAction => ({
+  type: "PERSIST_PSN_ACCOUNT",
+  payload: account,
+})
+
 const persistProvisionalPsnTokens = (
   npsso: string,
   authInfo: PsnAccountAuthenticationInfo,
@@ -103,5 +109,6 @@ export {
   checkPsnPresence,
   pollPsnPresence,
   updateAccount,
+  persistPsnAccount,
   persistProvisionalPsnTokens,
 }

@@ -50,12 +50,12 @@ function* updateAccountSaga() {
 }
 
 function* persistPsnAccountSaga() {
-  // takeEvery (not takeLatest): if two accounts update in quick succession,
-  // takeLatest would cancel the first account's in-flight persistence before
-  // it writes, silently dropping it. Every account's update must persist
-  // regardless of timing.
+  // takeEvery (not takeLatest): if two accounts persist in quick succession,
+  // takeLatest would cancel the first account's in-flight write before it
+  // lands, silently dropping it. Every persist must complete regardless of
+  // timing.
   yield takeEvery(
-    ["UPDATE_PSN_ACCOUNT", "PERSIST_PROVISIONAL_PSN_TOKENS"],
+    ["PERSIST_PSN_ACCOUNT", "PERSIST_PROVISIONAL_PSN_TOKENS"],
     sagas.persistPsnAccount,
   )
 }
