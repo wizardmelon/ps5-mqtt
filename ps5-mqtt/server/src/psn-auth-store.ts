@@ -142,6 +142,17 @@ async function writeStore(store: StoreFile): Promise<void> {
     await fs.promises.chmod(filePath, 0o600)
 
     debug(`Persisted PSN auth store to '${filePath}'.`)
+    // Also surface each account's refresh-token expiry (a timestamp, never
+    // the token) so token-lifetime behaviour — whether each rotation pushes
+    // the ~60-day expiry forward or leaves it pinned to the original NPSSO
+    // exchange — is diagnosable from the add-on log alone.
+    for (const account of Object.values(store.accounts)) {
+      const id = account.accountName ?? account.accountId
+      const validUntil = new Date(
+        account.authInfo.refreshTokenExpiration,
+      ).toISOString()
+      debug(`  ${id}: refresh token valid until ${validUntil}`)
+    }
   } catch (e) {
     logError(`Unable to persist PSN auth store to '${filePath}'.`, e)
   }
