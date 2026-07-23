@@ -247,7 +247,12 @@ jobs:
         run: |
           # GHCR namespaces must be lowercase; github.repository_owner may not be.
           REGISTRY_PREFIX="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}"
-          tags=("edge" "${{ github.sha }}")
+          # The concrete add-on version (kept in sync with
+          # add-ons/ps5-mqtt-edge/config.yaml) is published as its own tag so
+          # the HA Supervisor, which pulls <image>:<config version>, can offer
+          # an in-place update when that version is bumped. "edge" stays as the
+          # rolling tag / promote source.
+          tags=("edge" "${{ github.sha }}" "1.5.1-dev1")
 
           tag_args=()
           for tag in "${tags[@]}"; do

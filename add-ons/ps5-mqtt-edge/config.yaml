@@ -1,4 +1,4 @@
-version: "edge"
+version: "1.5.1-dev1"
 slug: ps5_mqtt_dev
 name: PS5 MQTT - Development Version (fork, WIP)
 description: >-
