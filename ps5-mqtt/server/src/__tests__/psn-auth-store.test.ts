@@ -176,31 +176,6 @@ describe("PsnAuthStore", () => {
     })
   })
 
-  describe("findByAccountId", () => {
-    test("returns the entry stored under the given accountId", async () => {
-      mockedReadFile.mockResolvedValue(
-        JSON.stringify({
-          version: 1,
-          accounts: {
-            "account-1": {
-              npssoHash: PsnAuthStore.hashNpsso("npsso-value"),
-              accountId: "account-1",
-              authInfo,
-              updatedAt: new Date().toISOString(),
-            },
-          },
-        }),
-      )
-
-      await expect(
-        PsnAuthStore.findByAccountId("account-1"),
-      ).resolves.toEqual(expect.objectContaining({ accountId: "account-1" }))
-      await expect(
-        PsnAuthStore.findByAccountId("unknown"),
-      ).resolves.toBeUndefined()
-    })
-  })
-
   describe("save", () => {
     test("writes atomically (tmp file + rename) with 0o600 permissions", async () => {
       await PsnAuthStore.save("account-1", {

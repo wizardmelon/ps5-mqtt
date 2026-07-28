@@ -10,6 +10,7 @@ import { createPlayactorClient } from "./playactor/client"
 import { PsnAccount } from "./psn-account"
 import reducer, {
   getDeviceRegistry,
+  persistPsnAccount,
   pollDevices,
   pollDiscovery,
   pollPsnPresence,
@@ -40,12 +41,14 @@ const createMqtt = async (
   })
 }
 
-// Bootstraps each configured PSN account and dispatches it via
-// UPDATE_PSN_ACCOUNT, which both populates it into the store (the reducer
-// keys accounts by accountId) and triggers the persist-psn-account saga to
-// mirror it to disk — the same path a periodic presence-check refresh goes
-// through. Requires the store/saga middleware to already be running.
-// Returns how many accounts were bootstrapped successfully.
+// Bootstraps each configured PSN account and dispatches it into the store:
+// UPDATE_PSN_ACCOUNT populates it (the reducer keys accounts by accountId)
+// and drives device matching, while PERSIST_PSN_ACCOUNT mirrors the freshly
+// obtained tokens to disk. Bootstrap tokens are always fresh (an NPSSO
+// exchange or a refresh-token rotation just happened), so they're always
+// persisted here; steady-state persistence only fires on actual rotation
+// (see check-psn-presence.ts). Requires the store/saga middleware to already
+// be running. Returns how many accounts were bootstrapped successfully.
 async function bootstrapPsnAccounts(
   accounts: AppConfig.PsnAccountInfo[],
   dispatch: Dispatch,
@@ -58,15 +61,15 @@ async function bootstrapPsnAccounts(
         accountInfo.username,
         dispatch,
       )
-      dispatch(
-        updateAccount({
-          ...account,
-          preferredDevices: {
-            ps4: accountInfo.preferred_ps4,
-            ps5: accountInfo.preferred_ps5,
-          },
-        }),
-      )
+      const registeredAccount = {
+        ...account,
+        preferredDevices: {
+          ps4: accountInfo.preferred_ps4,
+          ps5: accountInfo.preferred_ps5,
+        },
+      }
+      dispatch(updateAccount(registeredAccount))
+      dispatch(persistPsnAccount(registeredAccount))
       successCount += 1
     } catch (e) {
       logError(e)

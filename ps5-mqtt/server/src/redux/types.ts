@@ -92,10 +92,20 @@ export type UpdateAccountAction = {
   payload: Account
 }
 
+// Dispatched only when an account's OAuth tokens actually change — at
+// bootstrap, and when a periodic presence check rotates them (see
+// check-psn-presence.ts). Distinct from UPDATE_PSN_ACCOUNT, which fires every
+// presence-check tick to carry fresh activity data for device matching; that
+// one must stay cheap and in-memory, so it does not trigger a disk write.
+export type PersistPsnAccountAction = {
+  type: "PERSIST_PSN_ACCOUNT"
+  payload: Account
+}
+
 // Dispatched right after a fresh NPSSO exchange yields tokens but before the
 // profile fetch resolves an accountId, so a crash in that window doesn't
 // strand the freshly obtained tokens unpersisted. There's no full Account
-// yet at that point, hence the narrower payload (vs UpdateAccountAction).
+// yet at that point, hence the narrower payload (vs PersistPsnAccountAction).
 export type PersistProvisionalPsnTokensAction = {
   type: "PERSIST_PROVISIONAL_PSN_TOKENS"
   payload: {
@@ -122,6 +132,7 @@ export type AnyAction =
   | CheckPsnPresenceAction
   | PollPsnPresenceAction
   | UpdateAccountAction
+  | PersistPsnAccountAction
   | PersistProvisionalPsnTokensAction
 
 export type State = {

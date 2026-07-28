@@ -62,13 +62,6 @@ export namespace PsnAuthStore {
     )
   }
 
-  export async function findByAccountId(
-    accountId: string,
-  ): Promise<StoredAccountAuthInfo | undefined> {
-    const store = await readStore()
-    return store.accounts[accountId]
-  }
-
   export async function save(
     key: string,
     entry: Omit<StoredAccountAuthInfo, "updatedAt">,

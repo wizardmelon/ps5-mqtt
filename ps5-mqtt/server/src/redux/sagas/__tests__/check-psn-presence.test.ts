@@ -2,7 +2,7 @@ import lodash from "lodash"
 import { expectSaga } from "redux-saga-test-plan"
 
 import { PsnAccount } from "../../../psn-account"
-import { updateAccount } from "../../action-creators"
+import { persistPsnAccount, updateAccount } from "../../action-creators"
 import { Account, State } from "../../types"
 import { checkPsnPresence } from "../check-psn-presence"
 
@@ -22,6 +22,37 @@ describe("Check PSN Presence saga", () => {
     await expectSaga(checkPsnPresence)
       .withState(<State>{ accounts: { "0": mockAccount }, devices: {} })
       .put(updateAccount(mockAccount))
+      .run()
+  })
+
+  test("persists the account when its tokens rotate", async () => {
+    const staleAccount = makeAccount()
+    const rotatedAccount = makeAccount({
+      authInfo: {
+        accessToken: "rotated-access-token",
+        accessTokenExpiration: 0,
+        refreshToken: "rotated-refresh-token",
+        refreshTokenExpiration: 0,
+      },
+    })
+    mockPsnUpdateAccount.mockResolvedValue(rotatedAccount)
+
+    await expectSaga(checkPsnPresence)
+      .withState(<State>{ accounts: { "0": staleAccount }, devices: {} })
+      .put(updateAccount(rotatedAccount))
+      .put(persistPsnAccount(rotatedAccount))
+      .run()
+  })
+
+  test("does not persist when the account's tokens are unchanged", async () => {
+    const account = makeAccount()
+    // a distinct object with identical token values, as a real
+    // no-op-refresh would produce — not the same reference as `account`
+    mockPsnUpdateAccount.mockResolvedValue(makeAccount())
+
+    await expectSaga(checkPsnPresence)
+      .withState(<State>{ accounts: { "0": account }, devices: {} })
+      .not.put.actionType("PERSIST_PSN_ACCOUNT")
       .run()
   })
 })
